@@ -1,0 +1,10 @@
+{
+    "parser": "babel-eslint",
+    "extends": "standard",
+    "rules": {
+        "indent": ["error", "tab"],
+        "no-tabs": "off",
+        "semi": 0
+    },
+    "env": { "es6": true }
+}
