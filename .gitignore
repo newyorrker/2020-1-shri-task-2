@@ -1,0 +1,4 @@
+node_modules
+*.map
+bitmaps_test
+html_report
