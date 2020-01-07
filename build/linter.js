@@ -98,7 +98,9 @@ var walk = __webpack_require__(/*! ./walker */ "./lib/walker.js");
 var validator = __webpack_require__(/*! ./validator */ "./lib/validator.js");
 
 function analyser(tree) {
+  console.time('answer time');
   walk(tree, validator());
+  console.timeEnd('answer time');
   return [{
     "new": 'new'
   }];
@@ -133,8 +135,8 @@ var analysis = __webpack_require__(/*! ./analyser */ "./lib/analyser.js");
 var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
 
 var linter = function linter(json) {
-  var tree = jsonPrser(json);
-  console.info(json);
+  var tree = jsonPrser(json); // console.info(json);
+
   analysis(tree);
   return tree;
 };
@@ -158,7 +160,7 @@ linter(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"container\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                },\n                {\n                    \"elem\": \"content\",\n                    \"content\": [\n                        {\n                            \"block\": \"hedercontainer\",\n                            \"content\": [\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h1\" }\n                                },\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h2\" }\n                                },\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h3\" }\n                                },\n                                {\n                                    \"block\": \"image\",\n                                    \"mods\": { \"size\": \"l\" }\n                                }\n                            ]\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"type\": \"h1\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"type\": \"h2\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"m\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"l\" }\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"grid\",\n            \"mods\": {\n                \"m-columns\": \"10\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"2\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"payment\"\n                        }\n                    ]\n                },\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"8\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"offer\"\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"grid\",\n            \"mods\": {\n                \"m-columns\": \"12\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"2\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"payment\"\n                        }\n                    ]\n                },\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"10\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"offer\"\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"system\",\n            \"content\": [\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"xs\" }\n                },\n                {\n                    \"elem\": \"content\",\n                    \"content\": [\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"m\" }\n                        },\n                        {\n                            \"block\": \"song\",\n                            \"content\": [\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h2\" }\n                                }\n                            ]\n                        }\n                    ]\n                }\n            ]\n        }\n    ]\n}";
+module.exports = "{\n    \"block\": \"container\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"button\", \"mods\": { \"size\": \"m\" } },\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                },\n                {\n                    \"block\": \"warning\",\n                    \"elem\": \"content\",\n                    \"content\": [\n                        {\n                            \"block\": \"hedercontainer\",\n                            \"content\": [\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h1\" }\n                                },\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h2\" }\n                                },\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h3\" }\n                                },\n                                {\n                                    \"block\": \"image\",\n                                    \"mods\": { \"size\": \"l\" }\n                                }\n                            ]\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"type\": \"h1\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"type\": \"h2\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"m\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"l\" }\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"grid\",\n            \"mods\": {\n                \"m-columns\": \"10\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"2\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"payment\"\n                        }\n                    ]\n                },\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"8\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"offer\"\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"grid\",\n            \"mods\": {\n                \"m-columns\": \"10\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"6\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"payment\"\n                        }\n                    ]\n                },\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"4\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"offer\"\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"system\",\n            \"content\": [\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"xs\" }\n                },\n                {\n                    \"elem\": \"content\",\n                    \"content\": [\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"m\" }\n                        },\n                        {\n                            \"block\": \"song\",\n                            \"content\": [\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h2\" }\n                                }\n                            ]\n                        }\n                    ]\n                }\n            ]\n        }\n    ]\n}";
 
 /***/ }),
 
@@ -194,7 +196,8 @@ var validator = function validator() {
     previousBlock: '',
     currentBlock: '',
     textSizeMod: '',
-    grids: []
+    grids: [],
+    warnings: []
   };
   var textInfo = {
     h1: {
@@ -264,10 +267,20 @@ var validator = function validator() {
     }
   }
 
-  function validate(current) {
-    var key = current.key.value;
-    var value = current.value.value;
-    setCurrentBlock(key, value);
+  function validate(prop) {
+    var key = prop.key.value;
+    var value = prop.value.value;
+    warningBlockCheck(prop); // перенести грид сюда
+
+    if (store.grids.some(function (element) {
+      return element.isActive;
+    })) {
+      processGridBlock(key, value);
+    }
+
+    if (key === 'block' && value === 'text') {
+      setCurrentBlock(key, value);
+    }
 
     if (store.currentBlock === 'text') {
       if (key === 'type') {
@@ -302,49 +315,6 @@ var validator = function validator() {
             textInfo.h3.waiting = true;
             textInfo.h3.level = this.level;
             break;
-
-          default:
-            break;
-        }
-      }
-    }
-
-    if (store.targetBlock === 'warning') {
-      if (store.currentBlock === 'text') {
-        if (key === 'size') {
-          store.textSizeMod = !store.textSizeMod ? value : store.textSizeMod;
-
-          if (store.textSizeMod && store.textSizeMod !== value) {
-            console.error('error: WARNING.TEXT_SIZES_SHOULD_BE_EQUAL');
-          }
-        }
-
-        return;
-      }
-
-      if (store.currentBlock === 'button') {
-        if (key === 'size') {
-          var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
-
-          if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
-            console.error('error: WARNING.INVALID_BUTTON_SIZE');
-          }
-        }
-
-        return;
-      }
-
-      if (store.currentBlock === 'placeholder') {
-        if (key === 'size') {
-          var buttonSizeValueIndex = sizes.indexOf(value);
-
-          if (buttonSizeValueIndex < 4 || buttonSizeValueIndex > 6) {
-            console.error('error: WARNING.INVALID_PLACEHOLDER_SIZE');
-          }
-
-          if (store.blocks.includes('button')) {
-            console.error('error: WARNING.INVALID_BUTTON_POSITION');
-          }
         }
       }
     }
@@ -364,31 +334,93 @@ var validator = function validator() {
           localWalk(item, cbProp);
         });
         break;
+    }
+  }
 
-      default:
+  function isBlockRootObj(array, blockName) {
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].key.value === 'elem') {
+        return false;
+      }
+    }
+
+    for (var _i = 0; _i < array.length; _i++) {
+      if (array[_i].key.value === 'block' && array[_i].value.value === blockName) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function warningBlockCheck(prop) {
+    var currentWarning = store.warnings[store.warnings.length - 1];
+    var key = prop.key.value;
+    var value = prop.value.value;
+    setCurrentBlock(key, value);
+
+    switch (store.currentBlock) {
+      case 'button':
+        if (key === 'block') {
+          currentWarning.hasButton = true;
+        }
+
+        if (key === 'size') {
+          var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
+
+          if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
+            console.error('error: WARNING.INVALID_BUTTON_SIZE');
+          }
+        }
+
+        break;
+
+      case 'placeholder':
+        if (key === 'block') {
+          if (currentWarning.hasButton) {
+            console.error('error: WARNING.INVALID_BUTTON_POSITION');
+          }
+        }
+
+        if (key === 'size') {
+          var buttonSizeValueIndex = sizes.indexOf(value);
+
+          if (buttonSizeValueIndex < 4 || buttonSizeValueIndex > 6) {
+            console.error('error: WARNING.INVALID_PLACEHOLDER_SIZE');
+          }
+        }
+
+        break;
+
+      case 'text':
+        if (key === 'size') {
+          store.textSizeMod = !store.textSizeMod ? value : store.textSizeMod;
+
+          if (store.textSizeMod && store.textSizeMod !== value) {
+            console.error('error: WARNING.TEXT_SIZES_SHOULD_BE_EQUAL');
+          }
+        }
+
         break;
     }
   }
 
   function validateObj(element) {
-    var isGrid = element.children.some(function (element) {
-      return element.value.value === 'grid';
-    });
+    if (isBlockRootObj(element.children, 'grid')) {
+      var gridBlockModel = {
+        columns: 0,
+        elements: [],
+        isActive: true
+      };
+      this.store.grids.push(gridBlockModel);
+    } // if (isBlockRootObj(element.children, 'warning')) {
+    // 	const warningBlockModel = {
+    // 		hasButton: false
+    // 	}
+    // 	this.store.warnings.push(warningBlockModel);
+    // 	localWalk(element, warningBlockCheck);
+    // }
 
-    if (isGrid) {
-      var haveMods = element.children.some(function (element) {
-        return element.key.value === 'mods';
-      });
-
-      if (haveMods) {
-        var grid = {
-          columns: 0,
-          elements: []
-        };
-        this.store.grids.push(grid);
-        localWalk(element, propCheck);
-      }
-    }
   }
 
   function calculatePromo(grid) {
@@ -397,18 +429,19 @@ var validator = function validator() {
         return element.block === block.name && block.type === blockType.commercial;
       });
     });
-    var comListSumm = comList.length > 1 ? comList.reduce(function (prev, current) {
-      return prev.columns + current.columns;
-    }) : comList[0].columns;
 
-    if (comListSumm / grid.columns > 0.5) {
-      console.error('GRID.TOO_MUCH_MARKETING_BLOCKS');
+    if (comList.length > 0) {
+      var comListSumm = comList.length > 1 ? comList.reduce(function (prev, current) {
+        return prev.columns + current.columns;
+      }) : comList[0].columns;
+
+      if (comListSumm / grid.columns > 0.5) {
+        console.error('GRID.TOO_MUCH_MARKETING_BLOCKS');
+      }
     }
   }
 
-  function propCheck(element, list) {
-    var key = element.key.value;
-    var value = element.value.value;
+  function processGridBlock(key, value) {
     var currentGrid = store.grids[store.grids.length - 1];
     var currentElem = currentGrid.elements.length > 0 ? currentGrid.elements[currentGrid.elements.length - 1] : null;
 
@@ -443,6 +476,7 @@ var validator = function validator() {
       }); // посчитать сумму колонок элемента если равна общему количеству то проверяем названия блоков
 
       if (gridElementsColumns >= currentGrid.columns) {
+        currentGrid.isActive = false;
         calculatePromo(currentGrid);
       }
     }
@@ -451,6 +485,7 @@ var validator = function validator() {
   return {
     validate: validate,
     validateObj: validateObj,
+    isBlockRootObj: isBlockRootObj,
     store: store,
     level: level
   };
@@ -467,46 +502,34 @@ module.exports = validator;
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-function setBlockScope(prev, current, validator, walk) {
-  if (prev.value.value === 'warning') {
-    validator.store.targetBlock = 'warning';
-    validator.validate(current);
-    walk(current.value, validator);
-    validator.store.targetBlock = null;
-    return true;
-  } // if (prev.value.value === 'grid') {
-  // 	validator.store.targetBlock = 'grid';
-  // 	validator.validate(current);
-  // 	walk(current.value, validator);
-  // 	if (current.key === 'content') {
-  //         validator.store.targetBlock = null
-  //     }
-  // 	return true;
-  // }
-
-
-  return false;
-}
-
 function walk(item, validator) {
   switch (item.type) {
     case 'Object':
-      item.children.reduce(function (prev, current) {
-        if (prev.value) {
-          // граница анализа по блоку
-          // если граница задана то завершаем текущую итерацию
-          if (setBlockScope(prev, current, validator, walk)) return current;
-        }
-
-        validator.validate(current);
-        walk(current.value, validator);
-        return current;
-      }, {});
+      item.children.forEach(function (element) {
+        validator.validate(element);
+        walk(element.value, validator);
+      });
       break;
 
     case 'Array':
       validator.level++;
       item.children.forEach(function (element) {
+        if (validator.isBlockRootObj(element.children, 'warning')) {
+          var warningBlockModel = {
+            hasButton: false
+          };
+          validator.store.warnings.push(warningBlockModel);
+        }
+
+        if (validator.isBlockRootObj(element.children, 'grid')) {
+          var gridBlockModel = {
+            columns: 0,
+            elements: [],
+            isActive: true
+          };
+          validator.store.grids.push(gridBlockModel);
+        }
+
         validator.validateObj(element);
         walk(element, validator);
       });
