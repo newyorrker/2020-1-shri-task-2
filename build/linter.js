@@ -260,7 +260,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"button\", \"mods\": { \"size\": \"s\" } }\n    ]\n}";
+module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"button\", \"mods\": { \"size\": \"s\" } }\n    ]\n}";
 
 /***/ }),
 
