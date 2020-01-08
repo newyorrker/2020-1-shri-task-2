@@ -102,6 +102,7 @@ function analyser(tree) {
   var validator = Validator();
   walk(tree, validator);
   console.timeEnd('answer time');
+  console.log(validator.errors);
   return validator.errors;
 }
 
@@ -258,7 +259,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"button\", \"mods\": { \"size\": \"s\" } }\n    ]\n}";
+module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                { \"block\": \"button\", \"mods\": { \"size\": \"xl\" } }\n            ]\n        },\n        { \"block\": \"button\", \"mods\": { \"size\": \"xl\" } },\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } }\n    ]\n}";
 
 /***/ }),
 
@@ -319,6 +320,12 @@ var validator = function validator() {
       level: 0
     }
   };
+  var warningBlockInfo = {
+    button: {
+      waiting: false,
+      level: 0
+    }
+  };
   var sizes = ['xxxs', 'xxs', 'xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
 
   function setCurrentBlock(prop) {
@@ -369,7 +376,8 @@ var validator = function validator() {
     switch (store.currentBlock.name) {
       case 'button':
         if (key === 'block') {
-          currentWarning.hasButton = true;
+          warningBlockInfo.button.waiting = true;
+          warningBlockInfo.button.level = level;
         }
 
         if (key === 'size') {
@@ -384,7 +392,7 @@ var validator = function validator() {
 
       case 'placeholder':
         if (key === 'block') {
-          if (currentWarning.hasButton) {
+          if (warningBlockInfo.button.waiting && warningBlockInfo.button.level >= level) {
             writeError(currentWarning.rootProp, errorData.warning.buttonPosition);
           }
         }
