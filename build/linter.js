@@ -233,7 +233,7 @@ var analysis = __webpack_require__(/*! ./analyser */ "./lib/analyser.js");
 
 var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
 
-var linter = function linter(json) {
+var lint = function lint(json) {
   var tree = jsonPrser(json); // console.info(json);
 
   var errors = analysis(tree);
@@ -242,13 +242,13 @@ var linter = function linter(json) {
 };
 
 if (typeof window !== 'undefined') {
-  window.linter = linter;
+  window.lint = lint;
   window.json = testJson;
 } else if (typeof global !== 'undefined') {
-  global.linter = linter;
+  global.lint = lint;
 }
 
-linter(testJson);
+lint(testJson);
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ }),
