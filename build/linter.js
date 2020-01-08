@@ -260,7 +260,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        {\n            \"block\": \"warning\",\n            \"elem\": \"content\",\n            \"content\": [\n                { \"block\": \"placeholder\", \"mods\": { \"size\": \"xl\" }},\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                }\n            ]\n        }\n    ]\n}";
+module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"button\", \"mods\": { \"size\": \"s\" } }\n    ]\n}";
 
 /***/ }),
 
@@ -323,16 +323,22 @@ var validator = function validator() {
   };
   var sizes = ['xxxs', 'xxs', 'xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
 
-  function setCurrentBlock(key, value) {
+  function setCurrentBlock(prop) {
+    var key = prop.key.value;
+    var value = prop.value.value;
+
     switch (key) {
       case 'block':
-        store.currentBlock = value;
-        store.blocks.push(store.currentBlock);
+        store.currentBlock = {
+          name: value,
+          prop: prop
+        };
+        store.blocks.push(store.currentBlock.name);
         break;
 
       case 'content':
       case 'elem':
-        store.currentBlock = '';
+        store.currentBlock.name = '';
         break;
     }
   }
@@ -362,9 +368,9 @@ var validator = function validator() {
     var currentWarning = store.warnings[store.warnings.length - 1];
     var key = prop.key.value;
     var value = prop.value.value;
-    setCurrentBlock(key, value);
+    setCurrentBlock(prop);
 
-    switch (store.currentBlock) {
+    switch (store.currentBlock.name) {
       case 'button':
         if (key === 'block') {
           currentWarning.hasButton = true;
@@ -424,21 +430,21 @@ var validator = function validator() {
     }
 
     if (key === 'block' && value === 'text') {
-      setCurrentBlock(key, value);
+      setCurrentBlock(prop);
     }
 
-    if (store.currentBlock === 'text') {
+    if (store.currentBlock.name === 'text') {
       if (key === 'type') {
         switch (value) {
           case 'h1':
             textInfo.h1.level = this.level;
 
             if (textInfo.h1.waiting) {
-              writeError(prop, errorData.text.severalH1);
+              writeError(store.currentBlock.loc, errorData.text.severalH1);
             }
 
             if (textInfo.h2.waiting && textInfo.h2.level >= textInfo.h1.level) {
-              writeError(prop, errorData.text.positionH2);
+              writeError(store.currentBlock.loc, errorData.text.positionH2);
             }
 
             textInfo.h1.waiting = true;
@@ -450,7 +456,7 @@ var validator = function validator() {
             textInfo.h2.level = this.level;
 
             if (textInfo.h3.waiting && textInfo.h3.level >= textInfo.h2.level) {
-              writeError(prop, errorData.text.positionH3);
+              writeError(store.currentBlock.loc, errorData.text.positionH3);
             }
 
             textInfo.h3.waiting = false;
