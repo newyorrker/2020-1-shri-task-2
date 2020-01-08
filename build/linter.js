@@ -95,18 +95,117 @@
 
 var walk = __webpack_require__(/*! ./walker */ "./lib/walker.js");
 
-var validator = __webpack_require__(/*! ./validator */ "./lib/validator.js");
+var Validator = __webpack_require__(/*! ./validator */ "./lib/validator.js");
 
 function analyser(tree) {
   console.time('answer time');
-  walk(tree, validator());
+  var validator = Validator();
+  walk(tree, validator);
   console.timeEnd('answer time');
-  return [{
-    "new": 'new'
-  }];
+  return validator.errors;
 }
 
 module.exports = analyser;
+
+/***/ }),
+
+/***/ "./lib/data/blocksData.js":
+/*!********************************!*\
+  !*** ./lib/data/blocksData.js ***!
+  \********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var blockType = {
+  functional: 'functional',
+  commercial: 'commercial'
+};
+var blocks = [{
+  name: 'payment',
+  type: blockType.functional
+}, {
+  name: 'warning',
+  type: blockType.functional
+}, {
+  name: 'product',
+  type: blockType.functional
+}, {
+  name: 'history',
+  type: blockType.functional
+}, {
+  name: 'cover',
+  type: blockType.functional
+}, {
+  name: 'collect',
+  type: blockType.functional
+}, {
+  name: 'articles',
+  type: blockType.functional
+}, {
+  name: 'subscribtion',
+  type: blockType.functional
+}, {
+  name: 'event',
+  type: blockType.functional
+}, {
+  name: 'commercial',
+  type: blockType.commercial
+}, {
+  name: 'offer',
+  type: blockType.commercial
+}];
+module.exports.blockType = blockType;
+module.exports.blocks = blocks;
+
+/***/ }),
+
+/***/ "./lib/data/errorData.js":
+/*!*******************************!*\
+  !*** ./lib/data/errorData.js ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = {
+  warning: {
+    buttonSize: {
+      code: 'WARNING.INVALID_BUTTON_SIZE',
+      message: 'Некорректный размер блока button'
+    },
+    buttonPosition: {
+      code: 'WARNING.INVALID_BUTTON_POSITION',
+      message: 'Некорректное расположение блока button'
+    },
+    placeholderSize: {
+      code: 'WARNING.INVALID_PLACEHOLDER_SIZE',
+      message: 'Некорректный размер блока placeholder'
+    },
+    textSizeEqual: {
+      code: 'WARNING.TEXT_SIZES_SHOULD_BE_EQUAL',
+      message: 'Размер текста в блоке warning должен быть одинаковым'
+    }
+  },
+  text: {
+    severalH1: {
+      code: 'TEXT.SEVERAL_H1',
+      message: 'Заголовок H1 должен быть на странице в единственном экземпляре'
+    },
+    positionH2: {
+      code: 'TEXT.INVALID_H2_POSITION',
+      message: 'Некорректное расположение заголовка H2'
+    },
+    positionH3: {
+      code: 'TEXT.INVALID_H3_POSITION',
+      message: 'Некорректное расположение заголовка H3'
+    }
+  },
+  grid: {
+    toMuchMarketing: {
+      code: 'GRID.TOO_MUCH_MARKETING_BLOCKS',
+      message: 'Маркетинговые блоки занимают больше половины от всех колонок блока grid'
+    }
+  }
+};
 
 /***/ }),
 
@@ -137,8 +236,9 @@ var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
 var linter = function linter(json) {
   var tree = jsonPrser(json); // console.info(json);
 
-  analysis(tree);
-  return tree;
+  var errors = analysis(tree);
+  console.log(window.errors);
+  return errors;
 };
 
 if (typeof window !== 'undefined') {
@@ -186,10 +286,18 @@ module.exports = parseJson;
   !*** ./lib/validator.js ***!
   \**************************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+var errorData = __webpack_require__(/*! ./data/errorData */ "./lib/data/errorData.js");
+
+var blocksData = __webpack_require__(/*! ./data/blocksData */ "./lib/data/blocksData.js");
+
+var blockType = blocksData.blockType;
+var blocks = blocksData.blocks;
 
 var validator = function validator() {
   var level = 0;
+  var errors = [];
   var store = {
     targetBlock: null,
     blocks: [],
@@ -214,44 +322,6 @@ var validator = function validator() {
     }
   };
   var sizes = ['xxxs', 'xxs', 'xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
-  var blockType = {
-    functional: 'functional',
-    commercial: 'commercial'
-  };
-  var blocks = [{
-    name: 'payment',
-    type: blockType.functional
-  }, {
-    name: 'warning',
-    type: blockType.functional
-  }, {
-    name: 'product',
-    type: blockType.functional
-  }, {
-    name: 'history',
-    type: blockType.functional
-  }, {
-    name: 'cover',
-    type: blockType.functional
-  }, {
-    name: 'collect',
-    type: blockType.functional
-  }, {
-    name: 'articles',
-    type: blockType.functional
-  }, {
-    name: 'subscribtion',
-    type: blockType.functional
-  }, {
-    name: 'event',
-    type: blockType.functional
-  }, {
-    name: 'commercial',
-    type: blockType.commercial
-  }, {
-    name: 'offer',
-    type: blockType.commercial
-  }];
 
   function setCurrentBlock(key, value) {
     switch (key) {
@@ -267,90 +337,25 @@ var validator = function validator() {
     }
   }
 
-  function validate(prop) {
-    var key = prop.key.value;
-    var value = prop.value.value;
-    warningBlockCheck(prop); // перенести грид сюда
-
-    if (store.grids.some(function (element) {
-      return element.isActive;
-    })) {
-      processGridBlock(key, value);
-    }
-
-    if (key === 'block' && value === 'text') {
-      setCurrentBlock(key, value);
-    }
-
-    if (store.currentBlock === 'text') {
-      if (key === 'type') {
-        switch (value) {
-          case 'h1':
-            textInfo.h1.level = this.level;
-
-            if (textInfo.h1.waiting) {
-              console.error('error: TEXT.SEVERAL_H1');
-            }
-
-            if (textInfo.h2.waiting && textInfo.h2.level >= textInfo.h1.level) {
-              console.error('error: TEXT.INVALID_H2_POSITION');
-            }
-
-            textInfo.h1.waiting = true;
-            textInfo.h2.waiting = false;
-            break;
-
-          case 'h2':
-            textInfo.h2.waiting = true;
-            textInfo.h2.level = this.level;
-
-            if (textInfo.h3.waiting && textInfo.h3.level >= textInfo.h2.level) {
-              console.error('error: TEXT.INVALID_H3_POSITION');
-            }
-
-            textInfo.h3.waiting = false;
-            break;
-
-          case 'h3':
-            textInfo.h3.waiting = true;
-            textInfo.h3.level = this.level;
-            break;
+  function writeError(prop, errorData) {
+    console.log(prop, 'error');
+    var errorModel = {
+      code: errorData.code,
+      error: errorData.message,
+      location: {
+        start: {
+          column: prop.loc.start.column,
+          line: prop.loc.start.line
+        },
+        end: {
+          column: prop.loc.end.column,
+          line: prop.loc.end.line
         }
       }
-    }
-  }
-
-  function localWalk(element, cbProp) {
-    switch (element.type) {
-      case 'Object':
-        element.children.forEach(function (item) {
-          cbProp(item, element);
-          localWalk(item.value, cbProp);
-        });
-        break;
-
-      case 'Array':
-        element.children.forEach(function (item) {
-          localWalk(item, cbProp);
-        });
-        break;
-    }
-  }
-
-  function isBlockRootObj(array, blockName) {
-    for (var i = 0; i < array.length; i++) {
-      if (array[i].key.value === 'elem') {
-        return false;
-      }
-    }
-
-    for (var _i = 0; _i < array.length; _i++) {
-      if (array[_i].key.value === 'block' && array[_i].value.value === blockName) {
-        return true;
-      }
-    }
-
-    return false;
+    };
+    console.error(errorData.code);
+    errors.push(errorModel);
+    window.errors = errors;
   }
 
   function warningBlockCheck(prop) {
@@ -369,7 +374,7 @@ var validator = function validator() {
           var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
 
           if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
-            console.error('error: WARNING.INVALID_BUTTON_SIZE');
+            writeError(prop, errorData.warning.buttonSize);
           }
         }
 
@@ -378,7 +383,7 @@ var validator = function validator() {
       case 'placeholder':
         if (key === 'block') {
           if (currentWarning.hasButton) {
-            console.error('error: WARNING.INVALID_BUTTON_POSITION');
+            writeError(prop, errorData.warning.buttonPosition);
           }
         }
 
@@ -386,7 +391,7 @@ var validator = function validator() {
           var buttonSizeValueIndex = sizes.indexOf(value);
 
           if (buttonSizeValueIndex < 4 || buttonSizeValueIndex > 6) {
-            console.error('error: WARNING.INVALID_PLACEHOLDER_SIZE');
+            writeError(prop, errorData.warning.placeholderSize);
           }
         }
 
@@ -397,7 +402,7 @@ var validator = function validator() {
           store.textSizeMod = !store.textSizeMod ? value : store.textSizeMod;
 
           if (store.textSizeMod && store.textSizeMod !== value) {
-            console.error('error: WARNING.TEXT_SIZES_SHOULD_BE_EQUAL');
+            writeError(prop, errorData.warning.textSizeEqual);
           }
         }
 
@@ -405,25 +410,101 @@ var validator = function validator() {
     }
   }
 
-  function validateObj(element) {
-    if (isBlockRootObj(element.children, 'grid')) {
-      var gridBlockModel = {
-        columns: 0,
-        elements: [],
-        isActive: true
-      };
-      this.store.grids.push(gridBlockModel);
-    } // if (isBlockRootObj(element.children, 'warning')) {
-    // 	const warningBlockModel = {
-    // 		hasButton: false
-    // 	}
-    // 	this.store.warnings.push(warningBlockModel);
-    // 	localWalk(element, warningBlockCheck);
-    // }
+  function validate(prop) {
+    var key = prop.key.value;
+    var value = prop.value.value;
+    warningBlockCheck(prop); // перенести грид сюда
 
+    if (store.grids.some(function (element) {
+      return element.isActive;
+    })) {
+      processGridBlock(key, value, prop);
+    }
+
+    if (key === 'block' && value === 'text') {
+      setCurrentBlock(key, value);
+    }
+
+    if (store.currentBlock === 'text') {
+      if (key === 'type') {
+        switch (value) {
+          case 'h1':
+            textInfo.h1.level = this.level;
+
+            if (textInfo.h1.waiting) {
+              writeError(prop, errorData.text.severalH1);
+            }
+
+            if (textInfo.h2.waiting && textInfo.h2.level >= textInfo.h1.level) {
+              writeError(prop, errorData.text.positionH2);
+            }
+
+            textInfo.h1.waiting = true;
+            textInfo.h2.waiting = false;
+            break;
+
+          case 'h2':
+            textInfo.h2.waiting = true;
+            textInfo.h2.level = this.level;
+
+            if (textInfo.h3.waiting && textInfo.h3.level >= textInfo.h2.level) {
+              writeError(prop, errorData.text.positionH3);
+            }
+
+            textInfo.h3.waiting = false;
+            break;
+
+          case 'h3':
+            textInfo.h3.waiting = true;
+            textInfo.h3.level = this.level;
+            break;
+        }
+      }
+    }
+  } // function localWalk (element, cbProp) {
+  // 	switch (element.type) {
+  // 	case 'Object':
+  // 		element.children.forEach((item) => {
+  // 			cbProp(item, element);
+  // 			localWalk(item.value, cbProp);
+  // 		})
+  // 		break;
+  // 	case 'Array':
+  // 		element.children.forEach((item) => {
+  // 			localWalk(item, cbProp);
+  // 		})
+  // 		break;
+  // 	}
+  // }
+
+
+  function isBlockRootObj(array, blockName) {
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].key.value === 'elem') {
+        return false;
+      }
+    }
+
+    for (var _i = 0; _i < array.length; _i++) {
+      if (array[_i].key.value === 'block' && array[_i].value.value === blockName) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  function calculatePromo(grid) {
+  function validateObj(element) {// if (isBlockRootObj(element.children, 'grid')) {
+    // 	const gridBlockModel = {
+    // 		columns: 0,
+    // 		elements: [],
+    // 		isActive: true
+    // 	}
+    // 	this.store.grids.push(gridBlockModel);
+    // }
+  }
+
+  function calculatePromo(grid, prop) {
     var comList = grid.elements.filter(function (element) {
       return blocks.some(function (block) {
         return element.block === block.name && block.type === blockType.commercial;
@@ -436,12 +517,13 @@ var validator = function validator() {
       }) : comList[0].columns;
 
       if (comListSumm / grid.columns > 0.5) {
+        writeError(prop, errorData.grid.toMuchMarketing);
         console.error('GRID.TOO_MUCH_MARKETING_BLOCKS');
       }
     }
   }
 
-  function processGridBlock(key, value) {
+  function processGridBlock(key, value, prop) {
     var currentGrid = store.grids[store.grids.length - 1];
     var currentElem = currentGrid.elements.length > 0 ? currentGrid.elements[currentGrid.elements.length - 1] : null;
 
@@ -477,7 +559,7 @@ var validator = function validator() {
 
       if (gridElementsColumns >= currentGrid.columns) {
         currentGrid.isActive = false;
-        calculatePromo(currentGrid);
+        calculatePromo(currentGrid, prop);
       }
     }
   }
@@ -487,6 +569,7 @@ var validator = function validator() {
     validateObj: validateObj,
     isBlockRootObj: isBlockRootObj,
     store: store,
+    errors: errors,
     level: level
   };
 };
