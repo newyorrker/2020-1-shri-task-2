@@ -235,9 +235,7 @@ var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
 
 var lint = function lint(json) {
   var tree = jsonPrser(json);
-  console.info(json, tree);
   var errors = analysis(tree);
-  console.log(window.errors);
   return errors;
 };
 
@@ -344,7 +342,6 @@ var validator = function validator() {
   }
 
   function writeError(prop, errorData) {
-    console.log(prop, 'error');
     var errorModel = {
       code: errorData.code,
       error: errorData.message,
@@ -361,7 +358,6 @@ var validator = function validator() {
     };
     console.error(errorData.code);
     errors.push(errorModel);
-    window.errors = errors;
   }
 
   function warningBlockCheck(prop) {
@@ -440,11 +436,11 @@ var validator = function validator() {
             textInfo.h1.level = this.level;
 
             if (textInfo.h1.waiting) {
-              writeError(store.currentBlock.loc, errorData.text.severalH1);
+              writeError(store.currentBlock.prop, errorData.text.severalH1);
             }
 
             if (textInfo.h2.waiting && textInfo.h2.level >= textInfo.h1.level) {
-              writeError(store.currentBlock.loc, errorData.text.positionH2);
+              writeError(store.currentBlock.prop, errorData.text.positionH2);
             }
 
             textInfo.h1.waiting = true;
@@ -456,7 +452,7 @@ var validator = function validator() {
             textInfo.h2.level = this.level;
 
             if (textInfo.h3.waiting && textInfo.h3.level >= textInfo.h2.level) {
-              writeError(store.currentBlock.loc, errorData.text.positionH3);
+              writeError(store.currentBlock.prop, errorData.text.positionH3);
             }
 
             textInfo.h3.waiting = false;
