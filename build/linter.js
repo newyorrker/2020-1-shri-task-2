@@ -260,7 +260,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"container\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"button\", \"mods\": { \"size\": \"m\" } },\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                },\n                {\n                    \"block\": \"warning\",\n                    \"elem\": \"content\",\n                    \"content\": [\n                        {\n                            \"block\": \"hedercontainer\",\n                            \"content\": [\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h1\" }\n                                },\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h2\" }\n                                },\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h3\" }\n                                },\n                                {\n                                    \"block\": \"image\",\n                                    \"mods\": { \"size\": \"l\" }\n                                }\n                            ]\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"type\": \"h1\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"type\": \"h2\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"m\" }\n                        },\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"l\" }\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"grid\",\n            \"mods\": {\n                \"m-columns\": \"12\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"4\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"payment\"\n                        }\n                    ]\n                },\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"4\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"offer\"\n                        }\n                    ]\n                },\n                {\n                    \"block\": \"grid\",\n                    \"elem\": \"fraction\",\n                    \"elemMods\": {\n                        \"m-col\": \"4\"\n                    },\n                    \"content\": [\n                        {\n                            \"block\": \"offer\"\n                        }\n                    ]\n                }\n            ]\n        },\n        {\n            \"block\": \"system\",\n            \"content\": [\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"xs\" }\n                },\n                {\n                    \"elem\": \"content\",\n                    \"content\": [\n                        {\n                            \"block\": \"text\",\n                            \"mods\": { \"size\": \"m\" }\n                        },\n                        {\n                            \"block\": \"song\",\n                            \"content\": [\n                                {\n                                    \"block\": \"text\",\n                                    \"mods\": { \"type\": \"h2\" }\n                                }\n                            ]\n                        }\n                    ]\n                }\n            ]\n        }\n    ]\n}";
+module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"text\", \"mods\": { \"size\": \"m\" } },\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                { \"block\": \"text\", \"mods\": { \"size\": \"m\" } },\n                { \"block\": \"button\", \"mods\": { \"size\": \"s\" } },\n                { \"block\": \"placeholder\", \"mods\": { \"size\": \"xl\" } }\n            ]\n        }\n    ]\n}";
 
 /***/ }),
 
@@ -365,6 +365,10 @@ var validator = function validator() {
     setCurrentBlock(key, value);
 
     switch (store.currentBlock) {
+      case 'warning':
+        currentWarning.rootProp = prop;
+        break;
+
       case 'button':
         if (key === 'block') {
           currentWarning.hasButton = true;
@@ -374,7 +378,7 @@ var validator = function validator() {
           var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
 
           if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
-            writeError(prop, errorData.warning.buttonSize);
+            writeError(currentWarning.rootProp, errorData.warning.buttonSize);
           }
         }
 
@@ -383,7 +387,7 @@ var validator = function validator() {
       case 'placeholder':
         if (key === 'block') {
           if (currentWarning.hasButton) {
-            writeError(prop, errorData.warning.buttonPosition);
+            writeError(currentWarning.rootProp, errorData.warning.buttonPosition);
           }
         }
 
@@ -391,7 +395,7 @@ var validator = function validator() {
           var buttonSizeValueIndex = sizes.indexOf(value);
 
           if (buttonSizeValueIndex < 4 || buttonSizeValueIndex > 6) {
-            writeError(prop, errorData.warning.placeholderSize);
+            writeError(currentWarning.rootProp, errorData.warning.placeholderSize);
           }
         }
 
@@ -413,7 +417,10 @@ var validator = function validator() {
   function validate(prop) {
     var key = prop.key.value;
     var value = prop.value.value;
-    warningBlockCheck(prop);
+
+    if (this.store.warnings.length > 0) {
+      warningBlockCheck(prop);
+    }
 
     if (store.grids.some(function (element) {
       return element.isActive;
@@ -534,7 +541,7 @@ var validator = function validator() {
         } : {
           columns: 0
         };
-      }); // посчитать сумму колонок элемента если равна общему количеству то проверяем названия блоков
+      });
 
       if (gridElements.columns >= currentGrid.columns) {
         currentGrid.isActive = false;
@@ -563,25 +570,36 @@ module.exports = validator;
 /*! no static exports found */
 /***/ (function(module, exports) {
 
+function setScopeStart(item, validator) {
+  if (validator.isBlockRootObj(item.children, 'warning')) {
+    var warningBlockModel = {
+      hasButton: false,
+      isActive: true
+    };
+    validator.store.warnings.push(warningBlockModel);
+  }
+}
+
+function setScopeEnd(item, validator) {
+  if (validator.isBlockRootObj(item.children, 'warning')) {
+    validator.store.warnings.pop();
+  }
+}
+
 function walk(item, validator) {
   switch (item.type) {
     case 'Object':
+      setScopeStart(item, validator);
       item.children.forEach(function (element) {
         validator.validate(element);
         walk(element.value, validator);
       });
+      setScopeEnd(item, validator);
       break;
 
     case 'Array':
       validator.level++;
       item.children.forEach(function (element) {
-        if (validator.isBlockRootObj(element.children, 'warning')) {
-          var warningBlockModel = {
-            hasButton: false
-          };
-          validator.store.warnings.push(warningBlockModel);
-        }
-
         if (validator.isBlockRootObj(element.children, 'grid')) {
           var gridBlockModel = {
             columns: 0,
