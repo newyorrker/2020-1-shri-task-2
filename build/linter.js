@@ -234,8 +234,8 @@ var analysis = __webpack_require__(/*! ./analyser */ "./lib/analyser.js");
 var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
 
 var lint = function lint(json) {
-  var tree = jsonPrser(json); // console.info(json);
-
+  var tree = jsonPrser(json);
+  console.info(json, tree);
   var errors = analysis(tree);
   console.log(window.errors);
   return errors;
@@ -260,7 +260,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"text\", \"mods\": { \"size\": \"m\" } },\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                { \"block\": \"text\", \"mods\": { \"size\": \"m\" } },\n                { \"block\": \"button\", \"mods\": { \"size\": \"s\" } },\n                { \"block\": \"placeholder\", \"mods\": { \"size\": \"xl\" } }\n            ]\n        }\n    ]\n}";
+module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        {\n            \"block\": \"warning\",\n            \"elem\": \"content\",\n            \"content\": [\n                { \"block\": \"placeholder\", \"mods\": { \"size\": \"xl\" }},\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"size\": \"l\" }\n                }\n            ]\n        }\n    ]\n}";
 
 /***/ }),
 
@@ -365,10 +365,6 @@ var validator = function validator() {
     setCurrentBlock(key, value);
 
     switch (store.currentBlock) {
-      case 'warning':
-        currentWarning.rootProp = prop;
-        break;
-
       case 'button':
         if (key === 'block') {
           currentWarning.hasButton = true;
@@ -392,9 +388,7 @@ var validator = function validator() {
         }
 
         if (key === 'size') {
-          var buttonSizeValueIndex = sizes.indexOf(value);
-
-          if (buttonSizeValueIndex < 4 || buttonSizeValueIndex > 6) {
+          if (value !== 's' && value !== 'm' && value !== 'l') {
             writeError(currentWarning.rootProp, errorData.warning.placeholderSize);
           }
         }
@@ -402,11 +396,12 @@ var validator = function validator() {
         break;
 
       case 'text':
-        if (key === 'size') {
+        if (key === 'size' && !currentWarning.textInvalid) {
           store.textSizeMod = !store.textSizeMod ? value : store.textSizeMod;
 
           if (store.textSizeMod && store.textSizeMod !== value) {
-            writeError(prop, errorData.warning.textSizeEqual);
+            currentWarning.textInvalid = true;
+            writeError(currentWarning.rootProp, errorData.warning.textSizeEqual);
           }
         }
 
@@ -574,7 +569,9 @@ function setScopeStart(item, validator) {
   if (validator.isBlockRootObj(item.children, 'warning')) {
     var warningBlockModel = {
       hasButton: false,
-      isActive: true
+      isActive: true,
+      rootProp: item,
+      textInvalid: false
     };
     validator.store.warnings.push(warningBlockModel);
   }
