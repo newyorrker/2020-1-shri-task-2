@@ -384,7 +384,7 @@ var validator = function validator() {
           var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
 
           if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
-            writeError(currentWarning.rootProp, errorData.warning.buttonSize);
+            writeError(store.currentBlock.prop, errorData.warning.buttonSize);
           }
         }
 
@@ -424,8 +424,10 @@ var validator = function validator() {
     var value = prop.value.value;
 
     if (this.store.warnings.length > 0) {
+      // to do: попробовать переделать сразу  вызов в walker
       warningBlockCheck(prop);
-    }
+    } // this.store.grids.length > 0
+
 
     if (store.grids.some(function (element) {
       return element.isActive;
@@ -434,7 +436,7 @@ var validator = function validator() {
     }
 
     if (key === 'block' && value === 'text') {
-      setCurrentBlock(prop);
+      setCurrentBlock(prop); // to do: может решим что нибудь с текущим блоком?
     }
 
     if (store.currentBlock.name === 'text') {
@@ -491,7 +493,7 @@ var validator = function validator() {
     return false;
   }
 
-  function calculatePromo(grid, prop) {
+  function calculatePromo(grid) {
     var comList = grid.elements.filter(function (element) {
       return blocks.some(function (block) {
         return element.block === block.name && block.type === blockType.commercial;
@@ -504,12 +506,12 @@ var validator = function validator() {
       }) : comList[0].columns;
 
       if (comListSumm / grid.columns > 0.5) {
-        writeError(prop, errorData.grid.toMuchMarketing);
+        writeError(grid.rootProp, errorData.grid.toMuchMarketing);
       }
     }
   }
 
-  function processGridBlock(key, value, prop) {
+  function processGridBlock(key, value) {
     var currentGrid = store.grids[store.grids.length - 1];
     var currentElem = currentGrid.elements.length > 0 ? currentGrid.elements[currentGrid.elements.length - 1] : null;
 
@@ -550,7 +552,7 @@ var validator = function validator() {
 
       if (gridElements.columns >= currentGrid.columns) {
         currentGrid.isActive = false;
-        calculatePromo(currentGrid, prop);
+        calculatePromo(currentGrid);
       }
     }
   }
@@ -585,11 +587,25 @@ function setScopeStart(item, validator) {
     };
     validator.store.warnings.push(warningBlockModel);
   }
+
+  if (validator.isBlockRootObj(item.children, 'grid')) {
+    var gridBlockModel = {
+      columns: 0,
+      elements: [],
+      rootProp: item,
+      isActive: true
+    };
+    validator.store.grids.push(gridBlockModel);
+  }
 }
 
 function setScopeEnd(item, validator) {
   if (validator.isBlockRootObj(item.children, 'warning')) {
     validator.store.warnings.pop();
+  }
+
+  if (validator.isBlockRootObj(item.children, 'grid')) {
+    validator.store.grids.pop();
   }
 }
 
@@ -607,15 +623,6 @@ function walk(item, validator) {
     case 'Array':
       validator.level++;
       item.children.forEach(function (element) {
-        if (validator.isBlockRootObj(element.children, 'grid')) {
-          var gridBlockModel = {
-            columns: 0,
-            elements: [],
-            isActive: true
-          };
-          validator.store.grids.push(gridBlockModel);
-        }
-
         walk(element, validator);
       });
       validator.level--;
