@@ -259,7 +259,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"m\" }\n                },\n                { \"block\": \"button\", \"mods\": { \"size\": \"xl\" } }\n            ]\n        },\n        { \"block\": \"button\", \"mods\": { \"size\": \"xl\" } },\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } }\n    ]\n}";
+module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"xl\" }\n                },\n                { \"block\": \"button\", \"mods\": { \"size\": \"xxl\" } }\n            ]\n        },\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } }\n    ]\n}";
 
 /***/ }),
 
@@ -304,7 +304,8 @@ var validator = function validator() {
     currentBlock: '',
     textSizeMod: '',
     grids: [],
-    warnings: []
+    warnings: [],
+    currentObj: {}
   };
   var textInfo = {
     h1: {
@@ -323,7 +324,11 @@ var validator = function validator() {
   var warningBlockInfo = {
     button: {
       waiting: false,
-      level: 0
+      level: 0,
+      obj: {}
+    },
+    placeholder: {
+      obj: {}
     }
   };
   var sizes = ['xxxs', 'xxs', 'xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
@@ -378,13 +383,14 @@ var validator = function validator() {
         if (key === 'block') {
           warningBlockInfo.button.waiting = true;
           warningBlockInfo.button.level = level;
+          warningBlockInfo.button.obj = store.currentObj;
         }
 
         if (key === 'size') {
           var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
 
           if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
-            writeError(store.currentBlock.prop, errorData.warning.buttonSize);
+            writeError(warningBlockInfo.button.obj, errorData.warning.buttonSize);
           }
         }
 
@@ -392,14 +398,17 @@ var validator = function validator() {
 
       case 'placeholder':
         if (key === 'block') {
+          warningBlockInfo.placeholder.obj = store.currentObj;
+
           if (warningBlockInfo.button.waiting && warningBlockInfo.button.level >= level) {
-            writeError(currentWarning.rootProp, errorData.warning.buttonPosition);
+            writeError(warningBlockInfo.button.obj, errorData.warning.buttonPosition);
+            warningBlockInfo.button.waiting = false;
           }
         }
 
         if (key === 'size') {
           if (value !== 's' && value !== 'm' && value !== 'l') {
-            writeError(currentWarning.rootProp, errorData.warning.placeholderSize);
+            writeError(warningBlockInfo.placeholder.obj, errorData.warning.placeholderSize);
           }
         }
 
@@ -578,6 +587,8 @@ module.exports = validator;
 /***/ (function(module, exports) {
 
 function setScopeStart(item, validator) {
+  validator.store.currentObj = item;
+
   if (validator.isBlockRootObj(item.children, 'warning')) {
     var warningBlockModel = {
       hasButton: false,
