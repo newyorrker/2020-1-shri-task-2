@@ -101,8 +101,8 @@ function analyser(tree) {
   console.time('answer time');
   var validator = Validator();
   walk(tree, validator);
-  console.timeEnd('answer time');
-  console.log(validator.errors);
+  console.timeEnd('answer time'); // console.log(validator.errors);
+
   return validator.errors;
 }
 
@@ -259,7 +259,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"warning\",\n    \"content\": [\n        {\n            \"block\": \"warning\",\n            \"content\": [\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n                {\n                    \"block\": \"placeholder\",\n                    \"mods\": { \"size\": \"xl\" }\n                },\n                { \"block\": \"button\", \"mods\": { \"size\": \"xxl\" } }\n            ]\n        },\n        {\n            \"block\": \"placeholder\",\n            \"mods\": { \"size\": \"m\" }\n        },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } },\n        { \"block\": \"text\", \"mods\": { \"size\": \"l\" } }\n    ]\n}";
+module.exports = "{\n    \"block\": \"text-container\",\n    \"content\": [\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                }\n            ]\n        },\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h2\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                }\n            ]\n        }\n    ]\n}";
 
 /***/ }),
 
@@ -452,13 +452,11 @@ var validator = function validator() {
       if (key === 'type') {
         switch (value) {
           case 'h1':
-            textInfo.h1.level = this.level;
-
             if (textInfo.h1.waiting) {
               writeError(store.currentBlock.prop, errorData.text.severalH1);
             }
 
-            if (textInfo.h2.waiting && textInfo.h2.level >= textInfo.h1.level) {
+            if (textInfo.h2.waiting) {
               writeError(store.currentBlock.prop, errorData.text.positionH2);
             }
 
@@ -468,9 +466,8 @@ var validator = function validator() {
 
           case 'h2':
             textInfo.h2.waiting = true;
-            textInfo.h2.level = this.level;
 
-            if (textInfo.h3.waiting && textInfo.h3.level >= textInfo.h2.level) {
+            if (textInfo.h3.waiting) {
               writeError(store.currentBlock.prop, errorData.text.positionH3);
             }
 
@@ -479,7 +476,6 @@ var validator = function validator() {
 
           case 'h3':
             textInfo.h3.waiting = true;
-            textInfo.h3.level = this.level;
             break;
         }
       }
