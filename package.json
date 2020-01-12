@@ -41,9 +41,6 @@
   "dependencies": {
     "@babel/traverse": "^7.7.4",
     "express": "^4.17.1",
-    "json-to-ast": "^2.1.0",
-    "lodash": "^4.17.15",
-    "lodash-object": "^4.17.14",
-    "walk-ast": "0.0.2"
+    "json-to-ast": "^2.1.0"
   }
 }

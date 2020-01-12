@@ -95,14 +95,11 @@
 
 var walk = __webpack_require__(/*! ./walker */ "./lib/walker.js");
 
-var Validator = __webpack_require__(/*! ./validator */ "./lib/validator.js");
+var Validator = __webpack_require__(/*! ./validator/validator */ "./lib/validator/validator.js");
 
 function analyser(tree) {
-  console.time('answer time');
   var validator = Validator();
   walk(tree, validator);
-  console.timeEnd('answer time'); // console.log(validator.errors);
-
   return validator.errors;
 }
 
@@ -171,41 +168,54 @@ module.exports = {
   warning: {
     buttonSize: {
       code: 'WARNING.INVALID_BUTTON_SIZE',
-      message: 'Некорректный размер блока button'
+      error: 'Некорректный размер блока button'
     },
     buttonPosition: {
       code: 'WARNING.INVALID_BUTTON_POSITION',
-      message: 'Некорректное расположение блока button'
+      error: 'Некорректное расположение блока button'
     },
     placeholderSize: {
       code: 'WARNING.INVALID_PLACEHOLDER_SIZE',
-      message: 'Некорректный размер блока placeholder'
+      error: 'Некорректный размер блока placeholder'
     },
     textSizeEqual: {
       code: 'WARNING.TEXT_SIZES_SHOULD_BE_EQUAL',
-      message: 'Размер текста в блоке warning должен быть одинаковым'
+      error: 'Размер текста в блоке warning должен быть одинаковым'
     }
   },
   text: {
     severalH1: {
       code: 'TEXT.SEVERAL_H1',
-      message: 'Заголовок H1 должен быть на странице в единственном экземпляре'
+      error: 'Заголовок H1 должен быть на странице в единственном экземпляре'
     },
     positionH2: {
       code: 'TEXT.INVALID_H2_POSITION',
-      message: 'Некорректное расположение заголовка H2'
+      error: 'Некорректное расположение заголовка H2'
     },
     positionH3: {
       code: 'TEXT.INVALID_H3_POSITION',
-      message: 'Некорректное расположение заголовка H3'
+      error: 'Некорректное расположение заголовка H3'
     }
   },
   grid: {
     toMuchMarketing: {
       code: 'GRID.TOO_MUCH_MARKETING_BLOCKS',
-      message: 'Маркетинговые блоки занимают больше половины от всех колонок блока grid'
+      error: 'Маркетинговые блоки занимают больше половины от всех колонок блока grid'
     }
   }
+};
+
+/***/ }),
+
+/***/ "./lib/data/validationData.js":
+/*!************************************!*\
+  !*** ./lib/data/validationData.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = {
+  sizes: ['xxxs', 'xxs', 'xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl']
 };
 
 /***/ }),
@@ -218,6 +228,11 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(/*! ./linter */ "./lib/linter.js");
+
+var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
+
+var errors = lint(testJson);
+console.log(errors, 'errors');
 
 /***/ }),
 
@@ -232,8 +247,6 @@ __webpack_require__(/*! ./linter */ "./lib/linter.js");
 
 var analysis = __webpack_require__(/*! ./analyser */ "./lib/analyser.js");
 
-var testJson = __webpack_require__(/*! ./testjson */ "./lib/testjson.js");
-
 var lint = function lint(json) {
   var tree = jsonPrser(json);
   var errors = analysis(tree);
@@ -242,12 +255,9 @@ var lint = function lint(json) {
 
 if (typeof window !== 'undefined') {
   window.lint = lint;
-  window.json = testJson;
 } else if (typeof global !== 'undefined') {
   global.lint = lint;
 }
-
-lint(testJson);
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ }),
@@ -259,7 +269,7 @@ lint(testJson);
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"text-container\",\n    \"content\": [\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                }\n            ]\n        },\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h2\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h3\" }\n                }\n            ]\n        }\n    ]\n}";
+module.exports = "{\n    \"block\": \"text-container\",\n    \"content\": [\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h2\" }\n                }\n            ]\n        },\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h1\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h2\" }\n                }\n            ]\n        }\n    ]\n}";
 
 /***/ }),
 
@@ -280,294 +290,322 @@ module.exports = parseJson;
 
 /***/ }),
 
-/***/ "./lib/validator.js":
-/*!**************************!*\
-  !*** ./lib/validator.js ***!
-  \**************************/
+/***/ "./lib/utils/validationHelper.js":
+/*!***************************************!*\
+  !*** ./lib/utils/validationHelper.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function writeError(prop, errorData, errors) {
+  var errorModel = {
+    code: errorData.code,
+    error: errorData.error,
+    location: {
+      start: {
+        column: prop.loc.start.column,
+        line: prop.loc.start.line
+      },
+      end: {
+        column: prop.loc.end.column,
+        line: prop.loc.end.line
+      }
+    }
+  };
+  console.error(errorData.code);
+  errors.push(errorModel);
+}
+
+module.exports.writeError = writeError;
+
+/***/ }),
+
+/***/ "./lib/validator/blocks/grid.js":
+/*!**************************************!*\
+  !*** ./lib/validator/blocks/grid.js ***!
+  \**************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var errorData = __webpack_require__(/*! ./data/errorData */ "./lib/data/errorData.js");
+var writeError = __webpack_require__(/*! ../../utils/validationHelper */ "./lib/utils/validationHelper.js").writeError;
 
-var blocksData = __webpack_require__(/*! ./data/blocksData */ "./lib/data/blocksData.js");
+var errorData = __webpack_require__(/*! ../../data/errorData */ "./lib/data/errorData.js");
+
+var blocksData = __webpack_require__(/*! ../../data/blocksData */ "./lib/data/blocksData.js");
 
 var blockType = blocksData.blockType;
 var blocks = blocksData.blocks;
 
-var validator = function validator() {
-  var level = 0;
-  var errors = [];
-  var store = {
-    targetBlock: null,
-    blocks: [],
-    previousBlock: '',
-    currentBlock: '',
-    textSizeMod: '',
-    grids: [],
-    warnings: [],
-    currentObj: {}
-  };
-  var textInfo = {
-    h1: {
-      waiting: false,
-      level: 0
-    },
-    h2: {
-      waiting: false,
-      level: 0
-    },
-    h3: {
-      waiting: false,
-      level: 0
-    }
-  };
-  var warningBlockInfo = {
-    button: {
-      waiting: false,
-      level: 0,
-      obj: {}
-    },
-    placeholder: {
-      obj: {}
-    }
-  };
-  var sizes = ['xxxs', 'xxs', 'xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl'];
+var grid = function grid(store, key, value) {
+  var errors = store.errors;
+  var currentGrid = store.grids[store.grids.length - 1];
+  var currentElem = currentGrid.elements.length > 0 ? currentGrid.elements[currentGrid.elements.length - 1] : null;
 
-  function setCurrentBlock(prop) {
-    var key = prop.key.value;
-    var value = prop.value.value;
+  switch (key) {
+    case 'm-columns':
+      currentGrid.columns = isNaN(parseInt(value)) ? value : parseInt(value);
+      break;
 
-    switch (key) {
-      case 'block':
-        store.currentBlock = {
-          name: value,
-          prop: prop
-        };
-        store.blocks.push(store.currentBlock.name);
+    case 'elem':
+      currentGrid.elements.push({
+        name: value
+      });
+      break;
+
+    case 'block':
+      if (blocks.some(function (element) {
+        return element.name === value;
+      })) {
+        currentElem.block = value;
+      }
+
+      break;
+
+    case 'm-col':
+      currentElem.columns = isNaN(parseInt(value)) ? value : parseInt(value);
+      break;
+  }
+
+  if (currentGrid.elements.length > 0) {
+    var gridElements = currentGrid.elements.reduce(function (prev, current) {
+      return current.block ? {
+        block: current.blocks,
+        columns: prev.columns + current.columns
+      } : {
+        columns: 0
+      };
+    });
+
+    if (gridElements.columns >= currentGrid.columns) {
+      calculatePromo(currentGrid, errors);
+    }
+  }
+};
+
+var calculatePromo = function calculatePromo(grid, errors) {
+  var comList = grid.elements.filter(function (element) {
+    return blocks.some(function (block) {
+      return element.block === block.name && block.type === blockType.commercial;
+    });
+  });
+
+  if (comList.length > 0) {
+    var comListSumm = comList.length > 1 ? comList.reduce(function (prev, current) {
+      return prev.columns + current.columns;
+    }) : comList[0].columns;
+
+    if (comListSumm / grid.columns > 0.5) {
+      writeError(grid.rootProp, errorData.grid.toMuchMarketing, errors);
+    }
+  }
+};
+
+module.exports = grid;
+
+/***/ }),
+
+/***/ "./lib/validator/blocks/text.js":
+/*!**************************************!*\
+  !*** ./lib/validator/blocks/text.js ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var writeError = __webpack_require__(/*! ../../utils/validationHelper */ "./lib/utils/validationHelper.js").writeError;
+
+var errorData = __webpack_require__(/*! ../../data/errorData */ "./lib/data/errorData.js");
+
+var text = function text(store, key, value) {
+  var currentTextBlock = store.texts[store.texts.length - 1];
+  var errors = store.errors;
+
+  if (key === 'type') {
+    switch (value) {
+      case 'h1':
+        if (store.textInfo.exist.h1) {
+          writeError(currentTextBlock.rootProp, errorData.text.severalH1, errors);
+        }
+
+        if (store.textInfo.exist.h2) {
+          writeError(currentTextBlock.rootProp, errorData.text.positionH2, errors);
+        }
+
+        store.textInfo.exist.h1 = true;
+        store.textInfo.exist.h2 = false;
         break;
 
-      case 'content':
-      case 'elem':
-        store.currentBlock.name = '';
+      case 'h2':
+        store.textInfo.exist.h2 = true;
+
+        if (store.textInfo.exist.h3) {
+          writeError(currentTextBlock.rootProp, errorData.text.positionH3, errors);
+        }
+
+        store.textInfo.exist.h3 = false;
+        break;
+
+      case 'h3':
+        store.textInfo.exist.h3 = true;
         break;
     }
   }
+};
 
-  function writeError(prop, errorData) {
-    var errorModel = {
-      code: errorData.code,
-      error: errorData.message,
-      location: {
-        start: {
-          column: prop.loc.start.column,
-          line: prop.loc.start.line
-        },
-        end: {
-          column: prop.loc.end.column,
-          line: prop.loc.end.line
+module.exports = text;
+
+/***/ }),
+
+/***/ "./lib/validator/blocks/warning.js":
+/*!*****************************************!*\
+  !*** ./lib/validator/blocks/warning.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var writeError = __webpack_require__(/*! ../../utils/validationHelper */ "./lib/utils/validationHelper.js").writeError;
+
+var sizes = __webpack_require__(/*! ../../data/validationData */ "./lib/data/validationData.js").sizes;
+
+var errorData = __webpack_require__(/*! ../../data/errorData */ "./lib/data/errorData.js");
+
+function setCurrentBlock(store, prop) {
+  var key = prop.key.value;
+  var value = prop.value.value;
+
+  switch (key) {
+    case 'block':
+      store.currentBlock = {
+        name: value,
+        prop: prop
+      };
+      break;
+
+    case 'content':
+    case 'elem':
+      store.currentBlock.name = '';
+      break;
+  }
+}
+
+var warning = function warning(store, key, value, prop) {
+  var currentWarning = store.warnings[store.warnings.length - 1];
+  var errors = store.errors;
+  setCurrentBlock(store, prop);
+
+  switch (store.currentBlock.name) {
+    case 'button':
+      if (key === 'block') {
+        store.warningBlockInfo.button.exist = true;
+        store.warningBlockInfo.button.obj = store.currentObj;
+      }
+
+      if (key === 'size') {
+        var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
+
+        if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
+          writeError(store.warningBlockInfo.button.obj, errorData.warning.buttonSize, errors);
         }
       }
-    };
-    console.error(errorData.code);
-    errors.push(errorModel);
+
+      break;
+
+    case 'placeholder':
+      if (key === 'block') {
+        store.warningBlockInfo.placeholder.obj = store.currentObj;
+
+        if (store.warningBlockInfo.button.exist) {
+          writeError(store.warningBlockInfo.button.obj, errorData.warning.buttonPosition, errors);
+          store.warningBlockInfo.button.exist = false;
+        }
+      }
+
+      if (key === 'size') {
+        if (value !== 's' && value !== 'm' && value !== 'l') {
+          writeError(store.warningBlockInfo.placeholder.obj, errorData.warning.placeholderSize, errors);
+        }
+      }
+
+      break;
+
+    case 'text':
+      if (key === 'size' && !currentWarning.textInvalid) {
+        store.textSizeMod = !store.textSizeMod ? value : store.textSizeMod;
+
+        if (store.textSizeMod && store.textSizeMod !== value) {
+          currentWarning.textInvalid = true;
+          writeError(currentWarning.rootProp, errorData.warning.textSizeEqual, errors);
+        }
+      }
+
+      break;
   }
+};
 
-  function warningBlockCheck(prop) {
-    var currentWarning = store.warnings[store.warnings.length - 1];
-    var key = prop.key.value;
-    var value = prop.value.value;
-    setCurrentBlock(prop);
+module.exports = warning;
 
-    switch (store.currentBlock.name) {
-      case 'button':
-        if (key === 'block') {
-          warningBlockInfo.button.waiting = true;
-          warningBlockInfo.button.level = level;
-          warningBlockInfo.button.obj = store.currentObj;
-        }
+/***/ }),
 
-        if (key === 'size') {
-          var buttonSizeValue = sizes[sizes.indexOf(value) - 1];
+/***/ "./lib/validator/validator.js":
+/*!************************************!*\
+  !*** ./lib/validator/validator.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-          if (store.textSizeMod && store.textSizeMod !== buttonSizeValue) {
-            writeError(warningBlockInfo.button.obj, errorData.warning.buttonSize);
-          }
-        }
+var processWarningBlock = __webpack_require__(/*! ./blocks/warning */ "./lib/validator/blocks/warning.js");
 
-        break;
+var processGridBlock = __webpack_require__(/*! ./blocks/grid */ "./lib/validator/blocks/grid.js");
 
-      case 'placeholder':
-        if (key === 'block') {
-          warningBlockInfo.placeholder.obj = store.currentObj;
+var processTextBlock = __webpack_require__(/*! ./blocks/text */ "./lib/validator/blocks/text.js");
 
-          if (warningBlockInfo.button.waiting && warningBlockInfo.button.level >= level) {
-            writeError(warningBlockInfo.button.obj, errorData.warning.buttonPosition);
-            warningBlockInfo.button.waiting = false;
-          }
-        }
-
-        if (key === 'size') {
-          if (value !== 's' && value !== 'm' && value !== 'l') {
-            writeError(warningBlockInfo.placeholder.obj, errorData.warning.placeholderSize);
-          }
-        }
-
-        break;
-
-      case 'text':
-        if (key === 'size' && !currentWarning.textInvalid) {
-          store.textSizeMod = !store.textSizeMod ? value : store.textSizeMod;
-
-          if (store.textSizeMod && store.textSizeMod !== value) {
-            currentWarning.textInvalid = true;
-            writeError(currentWarning.rootProp, errorData.warning.textSizeEqual);
-          }
-        }
-
-        break;
-    }
-  }
+var validator = function validator() {
+  var store = {
+    currentBlock: {},
+    textSizeMod: '',
+    warnings: [],
+    grids: [],
+    texts: [],
+    currentObj: {},
+    warningBlockInfo: {
+      button: {
+        exist: false,
+        obj: {}
+      },
+      placeholder: {
+        obj: {}
+      }
+    },
+    textInfo: {
+      exist: {
+        h1: false,
+        h2: false,
+        h3: false
+      }
+    },
+    errors: []
+  };
 
   function validate(prop) {
     var key = prop.key.value;
     var value = prop.value.value;
 
     if (this.store.warnings.length > 0) {
-      // to do: попробовать переделать сразу  вызов в walker
-      warningBlockCheck(prop);
-    } // this.store.grids.length > 0
-
-
-    if (store.grids.some(function (element) {
-      return element.isActive;
-    })) {
-      processGridBlock(key, value, prop);
+      processWarningBlock(this.store, key, value, prop);
     }
 
-    if (key === 'block' && value === 'text') {
-      setCurrentBlock(prop); // to do: может решим что нибудь с текущим блоком?
+    if (this.store.grids.length > 0) {
+      processGridBlock(this.store, key, value);
     }
 
-    if (store.currentBlock.name === 'text') {
-      if (key === 'type') {
-        switch (value) {
-          case 'h1':
-            if (textInfo.h1.waiting) {
-              writeError(store.currentBlock.prop, errorData.text.severalH1);
-            }
-
-            if (textInfo.h2.waiting) {
-              writeError(store.currentBlock.prop, errorData.text.positionH2);
-            }
-
-            textInfo.h1.waiting = true;
-            textInfo.h2.waiting = false;
-            break;
-
-          case 'h2':
-            textInfo.h2.waiting = true;
-
-            if (textInfo.h3.waiting) {
-              writeError(store.currentBlock.prop, errorData.text.positionH3);
-            }
-
-            textInfo.h3.waiting = false;
-            break;
-
-          case 'h3':
-            textInfo.h3.waiting = true;
-            break;
-        }
-      }
-    }
-  }
-
-  function isBlockRootObj(array, blockName) {
-    for (var i = 0; i < array.length; i++) {
-      if (array[i].key.value === 'elem') {
-        return false;
-      }
-    }
-
-    for (var _i = 0; _i < array.length; _i++) {
-      if (array[_i].key.value === 'block' && array[_i].value.value === blockName) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  function calculatePromo(grid) {
-    var comList = grid.elements.filter(function (element) {
-      return blocks.some(function (block) {
-        return element.block === block.name && block.type === blockType.commercial;
-      });
-    });
-
-    if (comList.length > 0) {
-      var comListSumm = comList.length > 1 ? comList.reduce(function (prev, current) {
-        return prev.columns + current.columns;
-      }) : comList[0].columns;
-
-      if (comListSumm / grid.columns > 0.5) {
-        writeError(grid.rootProp, errorData.grid.toMuchMarketing);
-      }
-    }
-  }
-
-  function processGridBlock(key, value) {
-    var currentGrid = store.grids[store.grids.length - 1];
-    var currentElem = currentGrid.elements.length > 0 ? currentGrid.elements[currentGrid.elements.length - 1] : null;
-
-    switch (key) {
-      case 'm-columns':
-        currentGrid.columns = isNaN(parseInt(value)) ? value : parseInt(value);
-        break;
-
-      case 'elem':
-        currentGrid.elements.push({
-          name: value
-        });
-        break;
-
-      case 'block':
-        if (blocks.some(function (element) {
-          return element.name === value;
-        })) {
-          currentElem.block = value;
-        }
-
-        break;
-
-      case 'm-col':
-        currentElem.columns = isNaN(parseInt(value)) ? value : parseInt(value);
-        break;
-    }
-
-    if (currentGrid.elements.length > 0) {
-      var gridElements = currentGrid.elements.reduce(function (prev, current) {
-        return current.block ? {
-          block: current.blocks,
-          columns: prev.columns + current.columns
-        } : {
-          columns: 0
-        };
-      });
-
-      if (gridElements.columns >= currentGrid.columns) {
-        currentGrid.isActive = false;
-        calculatePromo(currentGrid);
-      }
+    if (this.store.texts.length > 0) {
+      processTextBlock(this.store, key, value);
     }
   }
 
   return {
     validate: validate,
-    isBlockRootObj: isBlockRootObj,
     store: store,
-    errors: errors,
-    level: level
+    errors: store.errors
   };
 };
 
@@ -582,57 +620,81 @@ module.exports = validator;
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-function setScopeStart(item, validator) {
-  validator.store.currentObj = item;
-
-  if (validator.isBlockRootObj(item.children, 'warning')) {
-    var warningBlockModel = {
-      hasButton: false,
-      isActive: true,
-      rootProp: item,
-      textInvalid: false
-    };
-    validator.store.warnings.push(warningBlockModel);
+function getCurrentBlockRootObj(array) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i].key.value === 'elem') {
+      return '';
+    }
   }
 
-  if (validator.isBlockRootObj(item.children, 'grid')) {
-    var gridBlockModel = {
-      columns: 0,
-      elements: [],
-      rootProp: item,
-      isActive: true
-    };
-    validator.store.grids.push(gridBlockModel);
+  for (var _i = 0; _i < array.length; _i++) {
+    if (array[_i].key.value === 'block') {
+      return array[_i].value.value;
+    }
+  }
+
+  return '';
+}
+
+function setScopeStart(item, currentBlockRootObj, validator) {
+  validator.store.currentObj = item;
+  if (!currentBlockRootObj) return;
+
+  switch (currentBlockRootObj) {
+    case 'warning':
+      validator.store.warnings.push({
+        rootProp: item,
+        textInvalid: false
+      });
+      break;
+
+    case 'grid':
+      validator.store.grids.push({
+        columns: 0,
+        elements: [],
+        rootProp: item
+      });
+      break;
+
+    case 'text':
+      validator.store.texts.push({
+        rootProp: item
+      });
+      break;
   }
 }
 
-function setScopeEnd(item, validator) {
-  if (validator.isBlockRootObj(item.children, 'warning')) {
-    validator.store.warnings.pop();
-  }
+function setScopeEnd(currentBlockRootObj, validator) {
+  switch (currentBlockRootObj) {
+    case 'warning':
+      validator.store.warnings.pop();
+      break;
 
-  if (validator.isBlockRootObj(item.children, 'grid')) {
-    validator.store.grids.pop();
+    case 'grid':
+      validator.store.grids.pop();
+      break;
+
+    case 'text':
+      validator.store.texts.pop();
+      break;
   }
 }
 
 function walk(item, validator) {
   switch (item.type) {
     case 'Object':
-      setScopeStart(item, validator);
+      setScopeStart(item, getCurrentBlockRootObj(item.children), validator);
       item.children.forEach(function (element) {
         validator.validate(element);
         walk(element.value, validator);
       });
-      setScopeEnd(item, validator);
+      setScopeEnd(getCurrentBlockRootObj(item.children), validator);
       break;
 
     case 'Array':
-      validator.level++;
       item.children.forEach(function (element) {
         walk(element, validator);
       });
-      validator.level--;
       break;
   }
 }
