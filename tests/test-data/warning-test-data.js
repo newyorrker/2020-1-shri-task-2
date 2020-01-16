@@ -150,6 +150,28 @@ const commonLevel2 = `{
     ]
 }`;
 
+const commonLevel3 = `{
+    "block": "warning",
+    "content": [
+        {
+            "block": "warning",
+            "content": [
+                { "block": "text", "mods": { "size": "l" } },
+                { "block": "placeholder", "mods": { "size": "m" } }
+            ]
+        },
+        { "block": "text", "mods": { "size": "l" } },
+        { "block": "text", "mods": { "size": "l" } },
+        {
+            "block": "warning",
+            "content": [
+                { "block": "placeholder", "mods": { "size": "m" } },
+                { "block": "button", "mods": { "size": "xl" } }
+            ]
+        }
+    ]
+}`
+
 module.exports = {
 	textSizeEqual: {
 		input: textSizeEqualText,
@@ -368,5 +390,9 @@ module.exports = {
 				}
 			}
 		]
+	},
+	commonLevel3: {
+		input: commonLevel3,
+		output: []
 	}
 }

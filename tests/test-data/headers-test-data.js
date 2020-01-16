@@ -84,6 +84,25 @@ const headerH3Level1Text = `[
     }
 ]`;
 
+const headerH2Level3Text = `{
+    "block": "text-container",
+    "content": [
+        {
+            "block": "text-inner-container",
+            "content": [
+                {
+                    "block": "text",
+                    "mods": { "type": "h1" }
+                },
+                {
+                    "block": "text",
+                    "mods": { "type": "h2" }
+                }
+            ]
+        }
+    ]
+}`
+
 module.exports = {
 	headerH1Level1: {
 		input: headerH1Level1Text,
@@ -169,5 +188,9 @@ module.exports = {
 				}
 			}
 		}]
+	},
+	headerH2Level3Text: {
+		input: headerH2Level3Text,
+		output: []
 	}
 }

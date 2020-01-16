@@ -269,7 +269,7 @@ if (typeof window !== 'undefined') {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "{\n    \"block\": \"text-container\",\n    \"content\": [\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h2\" }\n                }\n            ]\n        },\n        {\n            \"block\": \"text-inner-container\",\n            \"content\": [\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h1\" }\n                },\n                {\n                    \"block\": \"text\",\n                    \"mods\": { \"type\": \"h2\" }\n                }\n            ]\n        }\n    ]\n}";
+module.exports = "{\n    \"block\": \"grid\",\n    \"mods\": {\n        \"m-columns\": \"10\"\n    },\n    \"content\": [\n        {\n            \"block\": \"grid\",\n            \"elem\": \"fraction\",\n            \"elemMods\": {\n                \"m-col\": \"2\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"payment\"\n                }\n            ]\n        },\n        {\n            \"block\": \"grid\",\n            \"elem\": \"fraction\",\n            \"elemMods\": {\n                \"m-col\": \"8\"\n            },\n            \"content\": [\n                {\n                    \"block\": \"history\"\n                }\n            ]\n        }\n    ]\n }";
 
 /***/ }),
 

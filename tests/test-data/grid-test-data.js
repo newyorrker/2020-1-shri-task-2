@@ -227,6 +227,39 @@ const gridLevel2 = `{
     ]
  }`;
 
+const gridLevel3 = `{
+    "block": "grid",
+    "mods": {
+        "m-columns": "10"
+    },
+    "content": [
+        {
+            "block": "grid",
+            "elem": "fraction",
+            "elemMods": {
+                "m-col": "2"
+            },
+            "content": [
+                {
+                    "block": "payment"
+                }
+            ]
+        },
+        {
+            "block": "grid",
+            "elem": "fraction",
+            "elemMods": {
+                "m-col": "8"
+            },
+            "content": [
+                {
+                    "block": "history"
+                }
+            ]
+        }
+    ]
+ }`
+
 module.exports = {
 	gridLevel1: {
 		input: gridLevel1,
@@ -291,5 +324,9 @@ module.exports = {
 				}
 			}
 		]
+	},
+	gridLevel3: {
+		input: gridLevel3,
+		output: []
 	}
 }

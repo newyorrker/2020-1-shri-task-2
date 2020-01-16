@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 require('../build/linter');
 
 const gridJsonStrings = require('./test-data/grid-test-data');
@@ -17,6 +18,13 @@ const tests = [
 		targetFunc: lint,
 		input: gridJsonStrings.gridLevel2.input,
 		output: gridJsonStrings.gridLevel2.output
+	},
+	{
+		name: 'grid.to-much.marketing.level3',
+		text: 'Проверяет правильность валидации количества маркетинговых блоков в блоке grid',
+		targetFunc: lint,
+		input: gridJsonStrings.gridLevel3.input,
+		output: gridJsonStrings.gridLevel3.output
 	}
 ];
 
