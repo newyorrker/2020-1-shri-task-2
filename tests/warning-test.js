@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 require('../build/linter');
 
 const warningJsonStrings = require('./test-data/warning-test-data');
@@ -45,6 +46,13 @@ const tests = [
 		targetFunc: lint,
 		input: warningJsonStrings.commonLevel2.input,
 		output: warningJsonStrings.commonLevel2.output
+	},
+	{
+		name: 'warning.common-level3',
+		text: 'Проверяет правильность валидации нескольких случаев одновременно - уровень 3',
+		targetFunc: lint,
+		input: warningJsonStrings.commonLevel3.input,
+		output: warningJsonStrings.commonLevel3.output
 	}
 ];
 

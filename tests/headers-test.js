@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 require('../build/linter');
 
 const headersJsonStrings = require('./test-data/headers-test-data');
@@ -38,6 +39,13 @@ const tests = [
 		targetFunc: lint,
 		input: headersJsonStrings.headerH3Level1.input,
 		output: headersJsonStrings.headerH3Level1.output
+	},
+	{
+		name: 'position_h2.level3',
+		text: 'Проверяет стоит ли перед заголовоком h2 заголовок h3',
+		targetFunc: lint,
+		input: headersJsonStrings.headerH2Level3Text.input,
+		output: headersJsonStrings.headerH2Level3Text.output
 	}
 ];
 
